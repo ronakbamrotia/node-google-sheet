@@ -17,6 +17,6 @@ URL: https://accounts.google.com/ServiceLogin/signinchooser?service=cloudconsole
 
 7.) You will now see a list of credentials been generated next to it will be a download button click it.
 
-8.) Rename the file to credentials.json and save in project root directory.
+8.) Rename the file to credentials.json and save in project root directory. (The content will something like dummy-credentials.json file).
 
 9.) In index.js replace the constant SHEET_ID with your google sheet id.
