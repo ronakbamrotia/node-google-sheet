@@ -3,7 +3,7 @@ const authentication = require("./authentication");
 const express = require("express");
 const app = express();
 const bodyParser = require("body-parser");
-const SHEET_ID = "10ltst1stu-vpzX2qWrDqWLgp7OJJ5BtUEoVPy_btJ_w";
+const SHEET_ID = "YOUR_SHEET_ID";
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
