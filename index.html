@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Google Sheets</title>
+    <link
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://use.fontawesome.com/releases/v5.8.2/css/all.css"
+      integrity="sha384-oS3vJWv+0UjzBfQzYUhtDYW+Pj2yciDJxpsK1OYPAYjqT085Qq/1cq5FLXAZQ7Ay"
+      crossorigin="anonymous"
+    />
+
+    <style>
+      .user-input {
+        width: 30px;
+        border: 0;
+        border-bottom: 2px solid #c3c3c3;
+        margin-right: 5px;
+      }
+
+      .outer {
+        position: absolute;
+        display: flex;
+        flex-direction: column;
+        right: 15px;
+        bottom: 15px;
+      }
+      .add-div {
+        display: flex;
+      }
+      .add-div div {
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+      }
+      .add-div div input:nth-child(0) {
+        margin-bottom: 12px;
+      }
+      .download,
+      .rows,
+      .columns {
+        background: #3494d5;
+        font-size: 12px;
+        color: #ffffff;
+        padding: 5px;
+        border-radius: 5px;
+        border: 0;
+      }
+      .rows,
+      .columns {
+        width: 75px;
+      }
+      .download:hover {
+        color: #ffffff;
+        text-decoration: none;
+      }
+      .fixed-div {
+        position: fixed;
+        right: 10px;
+        bottom: 10px;
+      }
+      .fixed-div a {
+        float: right;
+        width: 100%;
+        text-align: center;
+      }
+      input[type="text"] {
+        outline: none;
+      }
+      input[name="rows"]:focus,
+      input[name="columns"]:focus {
+        border-bottom: 2px solid green;
+        transition: 1s;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="col-lg-12 mt-2">
+      <div class="table-responsive-lg" id="sheet"></div>
+    </div>
+
+    <div class="fixed-div">
+      <div>
+        <div class="mb-2">
+          <input type="text" name="rows" class="user-input" />
+          <button type="button" class="rows">
+            ROWS
+          </button>
+        </div>
+        <div class="mb-2">
+          <input type="text" name="columns" class="user-input" />
+          <button type="button" class="columns">
+            COLUMNS
+          </button>
+        </div>
+        <div><a download class="download" href="">DOWNLOAD</a></div>
+      </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script>
+      let alphabets = [];
+
+      // Single for loop used from A-Z instead of using if else in the below for loop to save time in computing if else in every iteration.
+      for (i = 0; i < 26; i++) {
+        alphabets.push(String.fromCharCode(65 + i));
+      }
+
+      for (i = 0; i < 26; i++) {
+        for (j = 0; j < 26; j++) {
+          alphabets.push(
+            String.fromCharCode(65 + i) + String.fromCharCode(65 + j)
+          );
+        }
+      }
+
+      // default html
+      function defaultHTML() {
+        const html = `<table class="table">
+                          <tbody>
+                            <tr><td></td><td>A</td><td>B</td><td>C</td><td>D</td><td>E</td><tr>
+                            <tr><td>1</td><td class="content-editable"></td><td class="content-editable"></td><td class="content-editable"></td><td class="content-editable"></td><td class="content-editable"></td></tr>
+                            <tr><td>2</td><td class="content-editable"></td><td class="content-editable"></td><td class="content-editable"></td><td class="content-editable"></td><td class="content-editable"></td></tr>
+                            <tr><td>3</td><td class="content-editable"></td><td class="content-editable"></td><td class="content-editable"></td><td class="content-editable"></td><td class="content-editable"></td></tr>
+                            <tr><td>4</td><td class="content-editable"></td><td class="content-editable"></td><td class="content-editable"></td><td class="content-editable"></td><td class="content-editable"></td></tr>
+                            <tr><td>5</td><td class="content-editable"></td><td class="content-editable"></td><td class="content-editable"></td><td class="content-editable"></td><td class="content-editable"></td></tr>
+                          </tbody>
+                        </table>`;
+        return html;
+      }
+
+      $(document).ready(function() {
+        $.get(
+          "/getData",
+          {},
+          function(res) {
+            let columnCount = 0;
+            let rowCount = res.length;
+            if (res) {
+              // Check the largest number of colums of all the rows.
+              res.map(row => {
+                if (row.length > columnCount) {
+                  columnCount = row.length;
+                }
+              });
+              let html = "";
+              html += `<table class="table">`;
+
+              html += `<tr><td></td>`;
+              for (k = 0; k < columnCount; k++) {
+                html += `<td>${alphabets[k]}</td>`;
+              }
+              html += `<tr>`;
+
+              for (let i = 0; i < rowCount; i++) {
+                html += `<tr><td>${i + 1}</td>`;
+
+                for (let j = 0; j < columnCount; j++) {
+                  html += `<td class="content-editable">${res[i][j] ||
+                    ""}</td>`;
+                }
+                html += "</tr>";
+              }
+              html += `</table>`;
+              $("#sheet").html(html);
+            } else {
+              html = defaultHTML();
+              $("#sheet").html(html);
+            }
+          },
+          "json"
+        );
+
+        $.get(
+          "/getDownloadUrl",
+          {},
+          function(res) {
+            if (res["url"]) {
+              $(".download").attr("href", res["url"]);
+            }
+          },
+          "json"
+        );
+
+        $(document).on("click", ".content-editable", function() {
+          const element = $(this);
+
+          if (element.find("input").length == 0) {
+            const value = element.text();
+            const width = element.width() + "px";
+            element.css("width", width);
+            element.text("");
+            const newElement = `<input class="content" type="text" style="width:${width}">`;
+            element.html(newElement);
+            element
+              .find("input")
+              .focus()
+              .val(value);
+          }
+        });
+
+        $(document).on("change", ".content", function() {
+          const element = $(this);
+          const td = element.closest("td");
+          const value = element.val();
+          const rowPos = element
+            .closest("tr")
+            .find("td:first")
+            .text();
+          let colPos = element
+            .closest("tr")
+            .find("td")
+            .index(td);
+          colPos = alphabets[colPos - 1];
+          element.remove();
+          td.text(value);
+          $.post(
+            "/updateData",
+            { rowPos: rowPos, colPos: colPos, value: value },
+            function(res) {},
+            "json"
+          );
+        });
+
+        $(document).on("click", ".rows", function() {
+          const rows = parseInt($('[name="rows"]').val());
+          if (rows) {
+            for (i = 1; i <= rows; i++) {
+              let tr = $("table tr:last").clone();
+              const last_count = parseInt(tr.find("td:first").text());
+              tr.find("td:first").text(last_count + 1);
+              tr.find("td")
+                .not(":first")
+                .text("");
+              $("tbody tr:last").after(tr);
+            }
+          } else {
+            let tr = $("table tr").length;
+            if (tr == 0) {
+              html = defaultHTML();
+              $("#sheet").html(html);
+            } else {
+              let tr = $("table tr:last").clone();
+              const last_count = parseInt(tr.find("td:first").text());
+              tr.find("td:first").text(last_count + 1);
+              tr.find("td")
+                .not(":first")
+                .text("");
+              $("tbody tr:last").after(tr);
+            }
+          }
+        });
+
+        $(document).on("click", ".columns", function() {
+          const columns = parseInt($('[name="columns"]').val());
+
+          // TO add columns with heading
+          if (columns) {
+            for (let i = 1; i <= columns; i++) {
+              const lastTD = $("table tr:first td:last");
+              const pos = $("table tr:first td").index(lastTD);
+              let clonedTD = lastTD.clone().text(alphabets[pos]);
+              lastTD.after(clonedTD);
+            }
+
+            // TO add empty columns
+            $("table tr")
+              .not(":first")
+              .each(function() {
+                for (let i = 1; i <= columns; i++) {
+                  let lastTD = $(this)
+                    .find("td:last")
+                    .clone()
+                    .text("");
+                  $(this).append(lastTD);
+                }
+              });
+          } else {
+            // TO add column with heading
+            const lastTD = $("table tr:first td:last");
+            const pos = $("table tr:first td").index(lastTD);
+            let clonedTD = lastTD.clone().text(alphabets[pos]);
+            lastTD.after(clonedTD);
+
+            // TO add empty columns
+            $("table tr")
+              .not(":first")
+              .each(function() {
+                let lastTD = $(this)
+                  .find("td:last")
+                  .clone()
+                  .text("");
+                $(this).append(lastTD);
+              });
+          }
+        });
+
+        $(document).on("click", "#update", function() {});
+      });
+    </script>
+  </body>
+</html>
